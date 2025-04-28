@@ -1,0 +1,62 @@
+ Integration of assorted sensors
+
+A) IR Sensor Module
+VCC of IR sensor ➔ Arduino 5V
+
+GND of IR sensor ➔ Arduino GND
+
+OUT of IR sensor ➔ Arduino Digital Pin 2
+
+B) Potentiometer
+Left pin of Pot ➔ Arduino 5V
+
+Right pin of Pot ➔ Arduino GND
+
+Middle pin (Wiper) ➔ Arduino Analog Pin A0
+
+C) Strain Gauge (Simulated with Analog Input)
+Because Tinkercad doesn't have strain gauge + HX711, simulate by using another potentiometer or a variable resistor.
+
+Simulated Strain Gauge Wiring:
+
+One side ➔ Arduino 5V
+
+Other side ➔ Arduino GND via a 10kΩ resistor
+
+Middle wire ➔ Arduino Analog Pin A1
+
+(In real systems, use HX711 amplifier connected to digital pins.)
+
+D) LED (optional actuator)
+Long leg (+) ➔ Arduino Digital Pin 13 through 220Ω resistor.
+
+Short leg (-) ➔ Arduino GND.
+
+####################################CODE################################################################
+void setup() {
+  Serial.begin(9600);
+  pinMode(2, INPUT); // IR Sensor
+  pinMode(13, OUTPUT); // LED
+}
+
+void loop() {
+  int irValue = digitalRead(2);
+  int potValue = analogRead(A0);
+  int strainValue = analogRead(A1);
+
+  Serial.print("IR: ");
+  Serial.print(irValue);
+  Serial.print(" | Pot: ");
+  Serial.print(potValue);
+  Serial.print(" | Strain: ");
+  Serial.println(strainValue);
+
+  // Simple action: If IR detects obstacle, turn LED ON
+  if (irValue == 0) { // Some IR modules are active low
+    digitalWrite(13, HIGH); // LED ON
+  } else {
+    digitalWrite(13, LOW); // LED OFF
+  }
+
+  delay(300);
+}
