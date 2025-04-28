@@ -1,0 +1,100 @@
+Data acquisition of physical phenomenon / Interfacing of sensors for monitoring the physical
+ quantities (distance, pressure, temperature, light intensity) and raising an alarm/ actuating a signal if the
+ quantity exceeds specified limit
+
+1. Ultrasonic Distance Sensor (HC-SR04)
+VCC ➔ Connect to 5V on Arduino
+
+GND ➔ Connect to GND on Arduino
+
+Trig ➔ Connect to Digital Pin 9
+
+Echo ➔ Connect to Digital Pin 10
+
+2. Force Sensor (FSR)
+One terminal ➔ Connect to 5V on Arduino
+
+Other terminal ➔ Connect to Analog Pin A0
+
+Pull-down resistor (10kΩ) ➔ Connect between A0 and GND
+
+3. Temperature Sensor (TMP36)
+Left pin (VCC) ➔ Connect to 5V
+
+Middle pin (OUT) ➔ Connect to Analog Pin A1
+
+Right pin (GND) ➔ Connect to GND
+
+4. Photoresistor (LDR)
+One side ➔ Connect to 5V
+
+Other side ➔ Connect to Analog Pin A2 and via 10kΩ resistor to GND
+
+5. Buzzer or LED (Alarm Output)
+Buzzer Positive (+) ➔ Connect to Digital Pin 12
+
+Buzzer Negative (-) ➔ Connect to GND
+
+(Optional) LED ➔ Connect to Digital Pin 13 with a 220Ω resistor in series to GND
+
+#########Code#################
+// Pin Definitions
+const int trigPin = 9;
+const int echoPin = 10;
+const int buzzerPin = 12;
+const int ledPin = 13;
+
+const int forcePin = A0;
+const int tempPin = A1;
+const int lightPin = A2;
+
+void setup() {
+  Serial.begin(9600);
+  
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+  
+  pinMode(buzzerPin, OUTPUT);
+  pinMode(ledPin, OUTPUT);
+}
+
+void loop() {
+  // Distance measurement
+  long duration;
+  int distance;
+  
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+  
+  duration = pulseIn(echoPin, HIGH);
+  distance = duration * 0.034 / 2;  // Calculate distance in cm
+  
+  // Read other sensors
+  int forceValue = analogRead(forcePin);
+  int tempValue = analogRead(tempPin);
+  int lightValue = analogRead(lightPin);
+  
+  float temperatureC = (tempValue * (5.0 / 1023.0)) * 100; // TMP36 conversion formula
+  
+  // Print readings to Serial Monitor
+  Serial.print("Distance: "); Serial.print(distance); Serial.println(" cm");
+  Serial.print("Force Sensor: "); Serial.println(forceValue);
+  Serial.print("Temperature: "); Serial.print(temperatureC); Serial.println(" C");
+  Serial.print("Light Intensity: "); Serial.println(lightValue);
+  
+  // Alarm Conditions
+  if (distance < 10 || forceValue > 800 || temperatureC > 40 || lightValue < 300) {
+    digitalWrite(buzzerPin, HIGH);
+    digitalWrite(ledPin, HIGH);
+  } else {
+    digitalWrite(buzzerPin, LOW);
+    digitalWrite(ledPin, LOW);
+  }
+  
+  delay(500); // Short delay between readings
+}
+
+
