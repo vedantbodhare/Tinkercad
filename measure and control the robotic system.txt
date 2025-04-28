@@ -1,0 +1,122 @@
+Interfacing data acquisition system hardware with computer to measure and control the robotic system
+
+
+1. Ultrasonic Distance Sensor (HC-SR04)
+VCC ➔ 5V
+
+GND ➔ GND
+
+Trig ➔ Digital Pin 9
+
+Echo ➔ Digital Pin 10
+
+2. Force Sensor
+One side ➔ 5V
+
+Other side ➔ Analog Pin A0 and 10kΩ resistor to GND
+
+3. Temperature Sensor (TMP36)
+Left pin (VCC) ➔ 5V
+
+Middle pin (OUT) ➔ Analog Pin A1
+
+Right pin (GND) ➔ GND
+
+4. Photoresistor (LDR)
+One side ➔ 5V
+
+Other side ➔ Analog Pin A2 and 10kΩ resistor to GND
+
+5. Micro Servo Motor
+Orange (Signal) ➔ Digital Pin 5
+
+Red (VCC) ➔ 5V
+
+Brown (GND) ➔ GND
+
+6. LED (Alarm)
+Long leg (Anode +) ➔ Digital Pin 12 (via 220Ω resistor)
+
+Short leg (Cathode -) ➔ GND
+
+############################################Code##########################################
+#include <Servo.h>
+
+// Sensor Pins
+const int trigPin = 9;
+const int echoPin = 10;
+
+const int forcePin = A0;
+const int tempPin = A1;
+const int lightPin = A2;
+
+// Actuator Pins
+const int servoPin = 5;
+const int ledPin = 12;
+
+Servo myServo;
+
+void setup() {
+  Serial.begin(9600);
+  
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+  
+  pinMode(ledPin, OUTPUT);
+  
+  myServo.attach(servoPin);  // Attach servo to pin 5
+}
+
+void loop() {
+  // Measure Distance
+  long duration;
+  int distance;
+  
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+  
+  duration = pulseIn(echoPin, HIGH);
+  distance = duration * 0.034 / 2;
+  
+  // Read Other Sensors
+  int forceValue = analogRead(forcePin);
+  int tempValue = analogRead(tempPin);
+  int lightValue = analogRead(lightPin);
+  
+  float temperatureC = (tempValue * (5.0 / 1023.0)) * 100;
+
+  // Send Data to Serial Monitor
+  Serial.print("Distance: "); Serial.print(distance); Serial.println(" cm");
+  Serial.print("Force Sensor: "); Serial.println(forceValue);
+  Serial.print("Temperature: "); Serial.print(temperatureC); Serial.println(" C");
+  Serial.print("Light Intensity: "); Serial.println(lightValue);
+  
+  // Servo and LED Control Logic
+  if (distance < 10) {
+    myServo.write(0); // Rotate to 0 degrees
+    digitalWrite(ledPin, HIGH); // LED ON
+  }
+  else if (temperatureC > 40) {
+    myServo.write(90); // Rotate to 90 degrees
+    digitalWrite(ledPin, HIGH); // LED ON
+  }
+  else if (forceValue > 800) {
+    myServo.write(180); // Rotate to 180 degrees
+    digitalWrite(ledPin, LOW); // LED OFF
+  }
+  else if (lightValue < 300) {
+    myServo.write(45); // Rotate to 45 degrees
+    digitalWrite(ledPin, HIGH); // LED ON
+  }
+  else {
+    myServo.write(90); // Normal position
+    digitalWrite(ledPin, LOW); // LED OFF
+  }
+
+  delay(500); // Delay before next read
+}
+
+
